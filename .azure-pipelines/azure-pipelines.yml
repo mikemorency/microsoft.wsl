@@ -1,0 +1,89 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+      - stable-*
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - main
+      - stable-*
+
+schedules:
+  - cron: 0 9 * * *
+    displayName: Nightly
+    always: true
+    branches:
+      include:
+        - main
+        - stable-*
+
+variables:
+  - name: checkoutPath
+    value: ansible_collections/microsoft/wsl
+  - name: coverageBranches
+    value: main
+  - name: entryPoint
+    value: .azure-pipelines/commands/entry-point.sh
+  - name: fetchDepth
+    value: 0
+  - name: defaultContainer
+    value: quay.io/ansible/azure-pipelines-test-container:8.0.0
+
+pool: Standard
+
+stages:
+  - stage: Dependencies
+    displayName: Dependencies
+    jobs:
+      - job: dep_download
+        displayName: Download Dependencies
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            fetchDepth: 1
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "3.14"
+          - bash: python -m pip install ansible-core
+            displayName: Install Ansible
+          - bash: ansible-galaxy collection install -r tests/requirements.yml -p collections
+            displayName: Install collection requirements
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: collections
+              artifactName: CollectionRequirements
+  - stage: Windows
+    displayName: Windows
+    dependsOn:
+      - Dependencies
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: Server {0}
+          testFormat: devel/windows/{0}
+          targets:
+            - name: Server 2019 WinRM HTTP
+              test: 2019/winrm/http
+            - name: Server 2022 WinRM HTTPS
+              test: 2022/winrm/https
+            - name: Server 2022 PSRP HTTPS
+              test: 2022/psrp/https
+            - name: Server 2022 SSH Key
+              test: 2022/ssh/key
+            - name: Server 2025 PSRP HTTPS
+              test: 2025/psrp/https
+            - name: Server 2025 SSH Key
+              test: 2025/ssh/key
+          groups:
+            - 1
+  - stage: Summary
+    condition: succeededOrFailed()
+    dependsOn:
+      - Windows
+    jobs:
+      - template: templates/coverage.yml

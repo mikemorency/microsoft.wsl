@@ -1,5 +1,11 @@
 /tests/output/
 /changelogs/.plugin-cache.yaml
+/tests/integration/inventory.winrm
+
+# AI
+.claude/
+CLAUDE.md
+.lola/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

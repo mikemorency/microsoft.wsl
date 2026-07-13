@@ -1,153 +1,134 @@
-# collection_template
-You can build a new repository for an Ansible Collection using this template by following [Creating a repository from a template](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template). This README.md contains recommended headings for your collection README.md, with comments describing what each section should contain. Once you have created your collection repository, delete this paragraph and the title above it from your README.md.
+# Ansible Collection: microsoft.wsl
 
-# Foo Collection for Ansible
-<!-- Add CI and code coverage badges here. Samples included below. -->
-[![CI](https://github.com/ansible-collections/REPONAMEHERE/workflows/CI/badge.svg?event=push)](https://github.com/ansible-collections/REPONAMEHERE/actions) [![Codecov](https://img.shields.io/codecov/c/github/ansible-collections/REPONAMEHERE)](https://codecov.io/gh/ansible-collections/REPONAMEHERE)
+This repo hosts the `microsoft.wsl` Ansible Collection.
 
-<!-- Describe the collection and why a user would want to use it. What does the collection do? -->
+The **microsoft.wsl** collection enables the management of Windows Subsystem for Linux (WSL) using Ansible. This collection brings forward the possibility to manage WSL distributions and automate operator tasks on Windows systems.
 
-## Our mission
+System programmers can enable pipelines to setup, configure and manage WSL distributions while system administrators can automate time consuming repetitive tasks inevitably freeing up their time. New WSL users can find comfort in Ansible's familiarity and expedite their proficiency in record time.
 
-<!-- Put your collection's mission statement in here. Example follows. -->
 
-At the `your collection name`, our mission is to produce and maintain simple, flexible,
-and powerful open-source software tailored to `your collection purpose`.
+## Requirements
 
-We welcome members from all skill levels to participate actively in our open, inclusive, and vibrant community.
-Whether you are an expert or just beginning your journey with Ansible and `your collection name`,
-you are encouraged to contribute, share insights, and collaborate with fellow enthusiasts!
+The content in this collection is mainly designed to run on a Windows target. The target must have Powershell installed.
 
-## Community standards
+There are no special requirements for the Ansible controller to run this content.
 
-This project abides by the following policies:
+### Ansible version compatibility
 
-* [Ansible Code of Conduct](https://docs.ansible.com/projects/ansible/devel/community/code_of_conduct.html)
-* [Ansible Community Policy for AI-Assisted Contributions](https://docs.ansible.com/projects/ansible/devel/community/ai_policy.html)
+This collection has been tested against following Ansible versions: **>=2.16.0**.
+
+
+## Installation
+
+Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
+
+```sh
+ansible-galaxy collection install microsoft.wsl
+```
+
+You can also include it in a requirements.yml file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
+
+```sh
+collections:
+  - name: microsoft.wsl
+```
+
+Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the Ansible package.
+To upgrade the collection to the latest available version, run the following command:
+
+```sh
+ansible-galaxy collection install microsoft.wsl --upgrade
+```
+
+You can also install a specific version of the collection, for example, if you need to install a different version. Use the following syntax to install version 1.0.0:
+
+```sh
+ansible-galaxy collection install microsoft.wsl:1.0.0
+```
+
+
+## Use Cases
+
+* Use Case Name: Manage WSL Distributions
+  * Actors:
+    * System Admin
+  * Description:
+    * A systems administrator can create, configure and manage WSL distributions on Windows hosts.
+  * Flow:
+    * Install and configure WSL distributions
+    * Manage WSL distribution settings and configurations
+    * Ensure distributions are in the correct state
+
+* Use Case Name: Gather Information About WSL Resources
+  * Actors:
+    * System Admin
+  * Description:
+    * The system administrator can gather detailed information about WSL distributions and their configurations for reporting.
+  * Flow:
+    * Gather details about installed WSL distributions
+    * Gather WSL configuration and version information
+    * Report on distribution state and settings
+
+
+## Testing
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ansible-collections_microsoft.wsl&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ansible-collections_microsoft.wsl)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ansible-collections_microsoft.wsl&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ansible-collections_microsoft.wsl)
+
+Static analysis and coverage are tracked on [SonarCloud](https://sonarcloud.io/project/overview?id=ansible-collections_microsoft.wsl). See [docs/sonarcloud.md](docs/sonarcloud.md) for CI wiring and contributor notes.
+
+All releases will meet the following test criteria.
+
+* 100% success for [Integration](https://github.com/ansible-collections/microsoft.wsl/blob/main/tests/integration) tests.
+* 100% success for [Unit](https://github.com/ansible-collections/microsoft.wsl/blob/main/tests/unit) tests.
+* 100% success for [Sanity](https://docs.ansible.com/ansible/latest/dev_guide/testing/sanity/index.html#all-sanity-tests) tests as part of [ansible-test](https://docs.ansible.com/ansible/latest/dev_guide/testing.html#run-sanity-tests).
+* 100% success for [ansible-lint](https://ansible.readthedocs.io/projects/lint/) allowing only false positives.
+
+
+## Contributing
+
+This community is currently accepting contributions. We encourage you to open [git issues](https://github.com/ansible-collections/microsoft.wsl/issues) for bugs, comments or feature requests. Please feel free to submit a PR to resolve the issue.
+
+Refer to the [Ansible community guide](https://docs.ansible.com/ansible/devel/community/index.html).
+
 
 ## Communication
 
-<!--
-If your collection is not present on the Ansible forum yet, please check out the existing [tags](https://forum.ansible.com/tags) and [groups](https://forum.ansible.com/g) - use what suits your collection. If there is no appropriate tag and group yet, please [request one](https://forum.ansible.com/t/requesting-a-forum-group/503/17).
--->
-
 * Join the Ansible forum:
-  * [Get Help](https://forum.ansible.com/c/help/6): get help or help others. Please add appropriate tags if you start new discussions, for example the `YOUR TAG` tag.
-  * [Posts tagged with 'your tag'](https://forum.ansible.com/tag/YOUR_TAG): subscribe to participate in collection/technology-related conversations.
-  * [Refer to your forum group here if exists](https://forum.ansible.com/g/): by joining the team you will automatically get subscribed to the posts tagged with [your group forum tag here](https://forum.ansible.com/tags).
+  * [Get Help](https://forum.ansible.com/c/help/6): get help or help others.
+  * [Posts tagged with 'wsl'](https://forum.ansible.com/tag/wsl): subscribe to participate in collection-related conversations.
+  * [Posts tagged with 'windows'](https://forum.ansible.com/tag/windows): subscribe to participate in Windows-related conversations.
   * [Social Spaces](https://forum.ansible.com/c/chat/4): gather and interact with fellow enthusiasts.
-  * [News & Announcements](https://forum.ansible.com/c/news/5): track project-wide announcements including social events. The [Bullhorn newsletter](https://docs.ansible.com/projects/ansible/devel/community/communication.html#the-bullhorn), which is used to announce releases and important changes, can also be found here.
+  * [News & Announcements](https://forum.ansible.com/c/news/5): track project-wide announcements including social events.
 
-For more information about communication, see the [Ansible communication guide](https://docs.ansible.com/projects/ansible/devel/community/communication.html).
+* The Ansible [Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn): used to announce releases and important changes.
 
-## Contributing to this collection
+For more information about communication, see the [Ansible communication guide](https://docs.ansible.com/ansible/devel/community/communication.html).
 
-<!--Describe how the community can contribute to your collection. At a minimum, fill up and include the CONTRIBUTING.md file containing how and where users can create issues to report problems or request features for this collection. List contribution requirements, including preferred workflows and necessary testing, so you can benefit from community PRs. If you are following general Ansible contributor guidelines, you can link to - [Ansible Community Guide](https://docs.ansible.com/projects/ansible/devel/community/index.html). List the current maintainers (contributors with write or higher access to the repository). The following can be included:-->
 
-The content of this collection is made by people like you, a community of individuals collaborating on making the world better through developing automation software.
+## Support
 
-We are actively accepting new contributors and all types of contributions are very welcome.
+If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may community help available via:
+- GitHub issues for bugs or feature requests: https://github.com/ansible-collections/microsoft.wsl/issues
+- the [Ansible Forum](https://forum.ansible.com/) for general inqueries or workflow questions
 
-Don't know how to start? Refer to the [Ansible community guide](https://docs.ansible.com/projects/ansible/devel/community/index.html)!
+## Release Notes and Roadmap
 
-Want to submit code changes? Take a look at the [Quick-start development guide](https://docs.ansible.com/projects/ansible/devel/community/create_pr_quick_start.html).
+A list of available releases can be found on the github [release page](https://github.com/ansible-collections/microsoft.wsl/releases).
+A changelog may be found attached to the release, or in the [CHANGELOG.rst](https://github.com/ansible-collections/microsoft.wsl/blob/main/CHANGELOG.rst)
 
-We also use the following guidelines:
+Note, some collections release before an ansible-core version reaches End of Life (EOL), thus the version of ansible-core that is supported must be a version that is currently supported.
+For AAP users, to see the supported ansible-core versions, review the [AAP Life Cycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform).
+For Galaxy and GitHub users, to see the supported ansible-core versions, review the [ansible-core support matrix](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix).
 
-* [Collection review checklist](https://docs.ansible.com/projects/ansible/devel/community/collection_contributors/collection_reviewing.html)
-* [Ansible development guide](https://docs.ansible.com/projects/ansible/devel/dev_guide/index.html)
-* [Ansible collection development guide](https://docs.ansible.com/projects/ansible/devel/dev_guide/developing_collections.html#contributing-to-collections)
 
-## Collection maintenance
+## Related Information
 
-The current maintainers are listed in the [MAINTAINERS](MAINTAINERS) file. If you have questions or need help, feel free to mention them in the proposals.
+The `ansible.windows` collection offers additional Windows automation functionality.
+The `community.windows` collection offers additional community supported Windows functionality.
 
-To learn how to maintain/become a maintainer of this collection, refer to the [Maintainer guidelines](https://docs.ansible.com/projects/ansible/devel/community/maintainers.html).
 
-It is necessary for maintainers of this collection to be subscribed to:
+## License Information
 
-* The collection itself (the `Watch` button -> `All Activity` in the upper right corner of the repository's homepage).
-* The [news-for-maintainers repository](https://github.com/ansible-collections/news-for-maintainers).
-
-They also should be subscribed to Ansible's [The Bullhorn newsletter](https://docs.ansible.com/projects/ansible/devel/community/communication.html#the-bullhorn).
-
-## Governance
-
-<!--Describe how the collection is governed. Here can be the following text:-->
-
-The process of decision making in this collection is based on discussing and finding consensus among participants.
-
-Every voice is important. If you have something on your mind, create an issue or dedicated discussion and let's discuss it!
-
-## Tested with Ansible
-
-<!-- List the versions of Ansible the collection has been tested with. Must match what is in galaxy.yml. -->
-
-## External requirements
-
-<!-- List any external resources the collection depends on, for example minimum versions of an OS, libraries, or utilities. Do not list other Ansible collections here. -->
-
-### Supported connections
-<!-- Optional. If your collection supports only specific connection types (such as HTTPAPI, netconf, or others), list them here. -->
-
-## Included content
-
-<!-- Galaxy now usually displays full module and plugin docs within the UI. If you don't use Galaxy for your collection, you may need to either describe your plugins etc here, or point to an external docsite to cover that information. -->
-
-## Using this collection
-
-<!--Include some quick examples that cover the most common use cases for your collection content. It can include the following examples of installation and upgrade (change NAMESPACE.COLLECTION_NAME correspondingly):-->
-
-### Installing the Collection from Ansible Galaxy
-
-Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
-```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME
-```
-
-You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
-```yaml
----
-collections:
-  - name: NAMESPACE.COLLECTION_NAME
-```
-
-Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
-```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME --upgrade
-```
-
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version `0.1.0`:
-
-```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME:==0.1.0
-```
-
-See [using Ansible collections](https://docs.ansible.com/projects/ansible/devel/user_guide/collections_using.html) for more details.
-
-## Release notes
-
-See the [changelog](https://github.com/ansible-collections/REPONAMEHERE/tree/main/CHANGELOG.rst).
-
-## Roadmap
-
-<!-- Optional. Include the roadmap for this collection, and the proposed release/versioning strategy so users can anticipate the upgrade/update cycle. -->
-
-## More information
-
-<!-- List out where the user can find additional information, such as working group meeting times, slack/IRC channels, or documentation for the product this collection automates. At a minimum, link to: -->
-
-- [Ansible user guide](https://docs.ansible.com/projects/ansible/devel/user_guide/index.html)
-- [Ansible developer guide](https://docs.ansible.com/projects/ansible/devel/dev_guide/index.html)
-- [Ansible collections requirements](https://docs.ansible.com/projects/ansible/devel/community/collection_contributors/collection_requirements.html)
-- [Ansible community Code of Conduct](https://docs.ansible.com/projects/ansible/devel/community/code_of_conduct.html)
-- [The Bullhorn (the Ansible contributor newsletter)](https://docs.ansible.com/projects/ansible/devel/community/communication.html#the-bullhorn)
-- [Important announcements for maintainers](https://github.com/ansible-collections/news-for-maintainers)
-
-## Licensing
-
-<!-- Include the appropriate license information here and a pointer to the full licensing details. If the collection contains modules migrated from the ansible/ansible repo, you must use the same license that existed in the ansible/ansible repo. See the GNU license example below. -->
-
-GNU General Public License v3.0 or later.
-
-See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
+GNU General Public License v3.0 or later
+See [LICENSE](https://github.com/ansible-collections/microsoft.wsl/blob/main/LICENSE) to see the full text.
