@@ -1,6 +1,7 @@
 /tests/output/
 /changelogs/.plugin-cache.yaml
 /tests/integration/inventory.winrm
+/.ansible/
 
 # AI
 .claude/

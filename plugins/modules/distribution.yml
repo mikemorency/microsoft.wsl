@@ -1,0 +1,120 @@
+---
+# Copyright: (c) 2026, Ansible Project
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+DOCUMENTATION:
+  module: distribution
+  short_description: Manage WSL distributions
+  description:
+    - Install, unregister (uninstall), or manage Windows Subsystem for Linux (WSL) distributions.
+    - Update distribution settings like WSL version, VHD size, location, and sparsity.
+
+  seealso:
+    - M(microsoft.wsl.distribution_info)
+    - M(microsoft.wsl.status_info)
+
+  extends_documentation_fragment:
+    - ansible.builtin.action_common_attributes
+    - microsoft.wsl.wsl_command
+
+  options:
+    name:
+      description:
+        - The name of the distribution to manage.
+        - This is used as the identifier for all WSL operations (install, update, unregister).
+        - When installing, this is used to register the distribution.
+        - If O(distribution_id) is not provided, O(name) is also used as the distribution ID
+          to determine which distribution to install.
+      type: str
+      required: true
+    distribution_id:
+      description:
+        - The WSL distribution ID to install, such as C(Ubuntu), C(Ubuntu-22.04), or C(Debian).
+        - Use M(microsoft.wsl.status_info) or M(microsoft.wsl.distribution_info) to list
+          available distribution IDs.
+        - Only used during initial installation. If provided, this determines which distribution
+          is installed, while O(name) controls the registered name.
+        - If not provided, O(name) is used as both the distribution ID and the registered name.
+      type: str
+    state:
+      description:
+        - The desired state of the distribution.
+        - If V(present), the distribution will be installed if it is not already present.
+          If the distribution already exists, it will be updated to match the desired configuration.
+        - If V(absent), the distribution will be unregistered and all of its data will be destroyed.
+      type: str
+      choices:
+        - present
+        - absent
+      default: present
+    version:
+      description:
+        - The WSL version to use for the distribution.
+        - When the distribution already exists and the version differs,
+          the module will convert the distribution.
+        - If not specified, the WSL default version is used for new installations and existing
+          distributions are not converted.
+      type: int
+      choices:
+        - 1
+        - 2
+    size:
+      description:
+        - The desired VHD size for the distribution in gigabytes.
+        - This module calculates the existing disk size to the nearest whole (30.0) or half (30.5) GB. If
+          you set this value to something other than a whole or half GB (30.75), the module will always report a change.
+      type: int
+    location:
+      description:
+        - The filesystem path where the distribution should be installed or moved to.
+      type: str
+    sparse:
+      description:
+        - Whether the distribution's VHD should use sparse file allocation.
+      type: bool
+    use_ms_store:
+      description:
+        - Whether to install the distribution from the Microsoft Store, or to download from the web.
+        - Only used during initial installation of a distribution; it cannot be set once the distro is installed.
+      type: bool
+      default: true
+    use_fixed_vhd:
+      description:
+        - Whether to use a fixed-size VHD when installing the distribution.
+        - Only used during initial installation of a distribution; it cannot be set once the distro is installed.
+      type: bool
+      default: false
+    allow_shutdown:
+      description:
+        - If true, the shutdown command will be used if updates requiring a shutdown are needed.
+        - File system operations used by O(location), O(sparse), or O(size) may require a shutdown.
+        - Shutdown will stop all running WSL instances.
+        - If false, a shutdown will not be done. The module will attempt to make the changes required,
+          and you will likely see an error from the WSL command stating a shutdown is needed.
+      default: true
+      type: bool
+
+  author:
+    - Mike Morency (@mikemorency)
+
+EXAMPLES: |
+  - name: Install the default Ubuntu distribution
+    microsoft.wsl.distribution:
+      name: Ubuntu
+
+  - name: Install a distribution with a custom name, location, size, and version
+    microsoft.wsl.distribution:
+      name: my-dev-env
+      distribution_id: Ubuntu-22.04
+      version: 2
+      location: D:\WSL\my-dev-env
+      size: 50
+      sparse: true
+      use_ms_store: false
+
+  - name: Unregister a distribution
+    microsoft.wsl.distribution:
+      name: my-dev-env
+      state: absent
+
+RETURN: {}

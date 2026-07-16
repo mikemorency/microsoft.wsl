@@ -155,3 +155,27 @@ function Invoke-WslCommand {
 
     return $stdout, $stderr
 }
+
+
+function Compare-DesiredVsActual {
+    param (
+        [string]$attributeName,
+        $desired,
+        $actual,
+        [object]$diff = $null
+    )
+
+    if ($desired -eq $null) {
+        return $False
+    }
+
+    if ($desired -ne $actual) {
+        if ($diff -ne $null) {
+            $diff.before[$attributeName] = $actual
+            $diff.after[$attributeName] = $desired
+        }
+        return $True
+    }
+
+    return $False
+}

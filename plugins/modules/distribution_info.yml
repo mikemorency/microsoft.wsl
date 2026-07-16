@@ -1,0 +1,64 @@
+---
+# Copyright: (c) 2026, Ansible Project
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+DOCUMENTATION:
+  module: distribution_info
+  short_description: Get detailed information about WSL distributions
+  description:
+    - Returns detailed information about installed Windows Subsystem for Linux (WSL) distributions.
+    - Combines runtime data from with registry metadata such as
+      filesystem location, default UID, flavor, OS version, and VHD sparse status.
+    - Can return information about all installed distributions or a single named distribution.
+
+  seealso:
+    - M(microsoft.wsl.distribution)
+    - M(microsoft.wsl.status_info)
+
+  extends_documentation_fragment:
+    - ansible.builtin.action_common_attributes
+    - microsoft.wsl.wsl_command
+
+  options:
+    name:
+      description:
+        - The name of a specific distribution to return information about.
+        - If not specified, information about all installed distributions is returned.
+        - This should match the name used by WSL, such as C(Ubuntu), C(Ubuntu-22.04), or C(Debian).
+      type: str
+
+  author:
+    - Mike Morency (@mikemorency)
+
+  attributes:
+    diff_mode:
+      support: N/A
+
+EXAMPLES: |
+  - name: Get information about all installed distributions
+    microsoft.wsl.distribution_info:
+
+  - name: Get information about a specific distribution
+    microsoft.wsl.distribution_info:
+      name: Ubuntu
+
+RETURN:
+  distributions:
+    description:
+      - A dictionary of WSL distributions keyed by name.
+      - Each entry contains runtime state from WSL and registry metadata.
+    returned: always
+    type: dict
+    sample:
+      Ubuntu:
+        name: Ubuntu
+        state: Running
+        version: 2
+        is_default: true
+        location: "C:\\Users\\user\\AppData\\Local\\Packages\\Ubuntu\\LocalState"
+        default_uid: 1000
+        flavor: "ubuntu"
+        os_version: "22.04"
+        vhd_file_name: "ext4.vhdx"
+        is_sparse: true
+        size: "30GB"

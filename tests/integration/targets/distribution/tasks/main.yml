@@ -1,0 +1,120 @@
+---
+- name: Do detailed info tests
+  ansible.builtin.include_tasks: info.yml
+
+- name: Test distribution install, update, and removal
+  block:
+    - name: Install the distro
+      microsoft.wsl.distribution: &install
+        name: "{{ test_distribution_name }}"
+        distribution_id: Ubuntu
+        state: present
+        location: c:\temp
+        version: 2
+        size: 20
+        sparse: true
+        use_ms_store: false
+        use_fixed_vhd: true
+      register: _install
+
+    - name: Assert install changed
+      ansible.builtin.assert:
+        that:
+          - _install is changed
+
+    - name: Get distro info after install
+      microsoft.wsl.distribution_info:
+        name: "{{ test_distribution_name }}"
+      register: _info_after_install
+
+    - name: Assert distro was installed correctly
+      ansible.builtin.assert:
+        that:
+          - _info_after_install.distributions | length == 1
+          - _info_after_install.distributions[test_distribution_name] is defined
+          - _info_after_install.distributions[test_distribution_name].name == test_distribution_name
+          - _info_after_install.distributions[test_distribution_name].version == 2
+          - _info_after_install.distributions[test_distribution_name].state in ['Running', 'Stopped']
+          - _info_after_install.distributions[test_distribution_name].is_sparse == true
+
+    - name: Install the distro - idempotence
+      microsoft.wsl.distribution: *install
+      register: _install_idem
+
+    - name: Assert install idempotence
+      ansible.builtin.assert:
+        that:
+          - _install_idem is not changed
+
+    - name: Update the distro settings
+      microsoft.wsl.distribution: &update
+        name: "{{ test_distribution_name }}"
+        sparse: false
+        location: c:\temp\updated
+        size: 30
+      register: _update
+
+    - name: Assert update changed
+      ansible.builtin.assert:
+        that:
+          - _update is changed
+
+    - name: Get distro info after update
+      microsoft.wsl.distribution_info:
+        name: "{{ test_distribution_name }}"
+      register: _info_after_update
+
+    - name: Assert settings were updated
+      ansible.builtin.assert:
+        that:
+          - _info_after_update.distributions[test_distribution_name].is_sparse == false
+          - _info_after_update.distributions[test_distribution_name].location == 'c:\\temp\\updated'
+          - _info_after_update.distributions[test_distribution_name].size == '30GB'
+
+    - name: Update the distro settings - idempotence
+      microsoft.wsl.distribution: *update
+      register: _update_idem
+
+    - name: Assert update idempotence
+      ansible.builtin.assert:
+        that:
+          - _update_idem is not changed
+
+    - name: Remove the distro
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent
+      register: _remove
+
+    - name: Assert remove changed
+      ansible.builtin.assert:
+        that:
+          - _remove is changed
+
+    - name: Get distro info after removal
+      microsoft.wsl.distribution_info:
+        name: "{{ test_distribution_name }}"
+      register: _info_after_remove
+
+    - name: Assert distro was removed
+      ansible.builtin.assert:
+        that:
+          - _info_after_remove.distributions | length == 0
+
+    - name: Remove the distro - idempotence
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent
+      register: _remove_idem
+
+    - name: Assert remove idempotence
+      ansible.builtin.assert:
+        that:
+          - _remove_idem is not changed
+
+  always:
+    - name: Cleanup - ensure test distro is removed
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent
+      ignore_errors: true
