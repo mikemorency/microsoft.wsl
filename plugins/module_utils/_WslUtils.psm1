@@ -144,6 +144,7 @@ function Invoke-WslCommand {
     $stderr = $stderrTask.GetAwaiter().GetResult()
     $process.WaitForExit()
 
+    # Handle error exit codes gracefully
     if ($process.ExitCode -notin $successCodes) {
         $module.Result.command_arguments = $arguments
         # wsl logs errors as regular text, so we need to reassign the stdout to stderr
@@ -152,7 +153,11 @@ function Invoke-WslCommand {
             $stdout = ""
         }
         Write-StdText -module $module -stdout $stdout -stderr $stderr
-        $module.FailJson("WSL command returned an unexpected exit code, $($process.ExitCode): $stderr")
+        $message = "WSL command returned an unexpected exit code, $($process.ExitCode)"
+        if ($stderr.length -gt 0) {
+            $message += ": $stderr"
+        }
+        $module.FailJson($message)
     }
 
     if (($module.Params.log_command_output -eq $True)) {

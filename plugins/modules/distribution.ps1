@@ -66,6 +66,7 @@ function Install-Distribution {
         -module $module `
         -arguments $installParams
 
+    # sparse is false by default, so only run these commands if its explicitly set to true
     if ($desiredSparse) {
         if ($allowShutdown) {
             Invoke-WslCommand `

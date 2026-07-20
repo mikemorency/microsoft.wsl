@@ -76,9 +76,11 @@ function Get-VhdFileInfo {
 
     if (-not (Test-Path -LiteralPath $vhdPath)) { return $null }
     $fileInfo = Get-Item -LiteralPath $vhdPath
+    $sizeInGb = ($fileInfo.Length / 1GB)
+
     return @{
         "is_sparse" = (($fileInfo.Attributes -band [System.IO.FileAttributes]::SparseFile) -ne 0)
-        "size" = "$([math]::Round($fileInfo.Length / 1GB))GB"
+        "size" = "$([math]::Round($val, [MidpointRounding]::AwayFromZero))GB"
     }
 }
 
