@@ -80,7 +80,7 @@ function Get-VhdFileInfo {
 
     return @{
         "is_sparse" = (($fileInfo.Attributes -band [System.IO.FileAttributes]::SparseFile) -ne 0)
-        "size" = "$([math]::Round($val, [MidpointRounding]::AwayFromZero))GB"
+        "size" = "$([math]::Round($sizeInGb, [MidpointRounding]::AwayFromZero))GB"
     }
 }
 
