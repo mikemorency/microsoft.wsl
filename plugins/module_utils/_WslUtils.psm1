@@ -144,13 +144,19 @@ function Invoke-WslCommand {
     $stderr = $stderrTask.GetAwaiter().GetResult()
     $process.WaitForExit()
 
-    if (($module.Params.log_command_output -eq $True) -or ($process.ExitCode -notin $successCodes)) {
-        Write-StdText -module $module -stdout $stdout -stderr $stderr
-
-        if ($process.ExitCode -notin $successCodes) {
-            $module.Result.command_arguments = $arguments
-            $module.FailJson("WSL command returned an unexpected exit code, $($process.ExitCode): $stderr")
+    if ($process.ExitCode -notin $successCodes) {
+        $module.Result.command_arguments = $arguments
+        # wsl logs errors as regular text, so we need to reassign the stdout to stderr
+        if ($stderr -eq "") {
+            $stderr = $stdout
+            $stdout = ""
         }
+        Write-StdText -module $module -stdout $stdout -stderr $stderr
+        $module.FailJson("WSL command returned an unexpected exit code, $($process.ExitCode): $stderr")
+    }
+
+    if (($module.Params.log_command_output -eq $True)) {
+        Write-StdText -module $module -stdout $stdout -stderr $stderr
     }
 
     return $stdout, $stderr
@@ -165,12 +171,12 @@ function Compare-DesiredVsActual {
         [object]$diff = $null
     )
 
-    if ($desired -eq $null) {
+    if ($null -eq $desired) {
         return $False
     }
 
     if ($desired -ne $actual) {
-        if ($diff -ne $null) {
+        if ($null -ne $diff) {
             $diff.before[$attributeName] = $actual
             $diff.after[$attributeName] = $desired
         }

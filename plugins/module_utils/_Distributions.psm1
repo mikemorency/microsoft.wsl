@@ -57,64 +57,13 @@ function Get-DistributionRuntimeInfo {
 }
 
 
-function Wait-DistributionState {
-    <#
-    .SYNOPSIS
-        Waits for a WSL distribution to reach a desired state.
-    .DESCRIPTION
-        Polls Get-DistributionRuntimeInfo at 10-second intervals until the
-        distribution reaches the desired state or the timeout is exceeded.
-        Throws an error if the timeout is reached.
-    .PARAMETER wslExe
-        The wsl.exe command object returned by Test-WslInstall.
-    .PARAMETER module
-        The Ansible.Basic.AnsibleModule instance.
-    .PARAMETER name
-        The name of the distribution to monitor.
-    .PARAMETER desiredState
-        The state to wait for (e.g. Stopped, Running).
-    .PARAMETER timeout
-        Maximum time in seconds to wait. Defaults to 60.
-    #>
-    param (
-        [Parameter(Mandatory)]
-        [object]$wslExe,
-
-        [Parameter(Mandatory)]
-        [object]$module,
-
-        [Parameter(Mandatory)]
-        [string]$name,
-
-        [Parameter(Mandatory)]
-        [string]$desiredState,
-
-        [int]$timeout = 60
-    )
-
-    $elapsed = 0
-    $interval = 10
-    while ($elapsed -lt $timeout) {
-        $info = Get-DistributionRuntimeInfo -wslExe $wslExe -module $module -name $name -flat
-        if ($null -ne $info -and $info.state -eq $desiredState) {
-            return
-        }
-        Start-Sleep -Seconds $interval
-        $elapsed += $interval
-    }
-
-    $currentState = if ($null -ne $info) { $info.state } else { "not found" }
-    throw "Timed out waiting for distribution '$name' to reach state '$desiredState' after $timeout seconds. Current state: $currentState"
-}
-
-
 function Get-VhdFileInfo {
     <#
     .SYNOPSIS
         Gets file information for a VHD file.
     .DESCRIPTION
         Checks if the VHD file exists at the given path and returns its
-        sparse attribute and size rounded to the nearest half gigabyte.
+        sparse attribute and size rounded to the nearest whole gigabyte.
     .PARAMETER vhdPath
         The full path to the VHD file.
     .OUTPUTS
@@ -125,12 +74,11 @@ function Get-VhdFileInfo {
         [string]$vhdPath
     )
 
-    if (-not (Test-Path $vhdPath)) { return $null }
-    $fileInfo = Get-Item $vhdPath
+    if (-not (Test-Path -LiteralPath $vhdPath)) { return $null }
+    $fileInfo = Get-Item -LiteralPath $vhdPath
     return @{
         "is_sparse" = (($fileInfo.Attributes -band [System.IO.FileAttributes]::SparseFile) -ne 0)
-        # calculate size to the nearest half or whole number
-        "size" = "$([math]::Round($fileInfo.Length / 1GB * 2) / 2)GB"
+        "size" = "$([math]::Round($fileInfo.Length / 1GB))GB"
     }
 }
 
@@ -142,17 +90,18 @@ function Get-DistributionInstallInfo {
     )
     $baseRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss"
     $output = @{}
-    foreach ($key in (Get-ChildItem -Path $baseRegPath | Where-Object { $_.Property -contains "BasePath" })) {
-        $props = Get-ItemProperty $key.PSPath
+    if (-not (Test-Path -LiteralPath $baseRegPath)) { if ($flat) { return $null } else { return $output } }
+    foreach ($key in (Get-ChildItem -LiteralPath $baseRegPath | Where-Object { $_.Property -contains "BasePath" })) {
+        $props = Get-ItemProperty -LiteralPath $key.PSPath
         $distroName = $props.DistributionName
         if ((-not [string]::IsNullOrEmpty($name)) -and ($name -ne $distroName)) {
             continue
         }
         $data = @{
-            location      = $props.BasePath
-            default_uid   = $props.DefaultUid
-            flavor        = $props.Flavor
-            os_version    = $props.OsVersion
+            location = $props.BasePath
+            default_uid = $props.DefaultUid
+            flavor = $props.Flavor
+            os_version = $props.OsVersion
             vhd_file_name = $props.VhdFileName
         }
 

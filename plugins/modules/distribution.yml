@@ -10,8 +10,8 @@ DOCUMENTATION:
     - Update distribution settings like WSL version, VHD size, location, and sparsity.
 
   seealso:
-    - M(microsoft.wsl.distribution_info)
-    - M(microsoft.wsl.status_info)
+    - module: microsoft.wsl.distribution_info
+    - module: microsoft.wsl.status_info
 
   extends_documentation_fragment:
     - ansible.builtin.action_common_attributes
@@ -61,8 +61,8 @@ DOCUMENTATION:
     size:
       description:
         - The desired VHD size for the distribution in gigabytes.
-        - This module calculates the existing disk size to the nearest whole (30.0) or half (30.5) GB. If
-          you set this value to something other than a whole or half GB (30.75), the module will always report a change.
+        - The existing disk size is rounded to the nearest whole GB for comparison.
+        - Resizing operations require that the VHD is uncompressed, unecrypted, and not sparse.
       type: int
     location:
       description:

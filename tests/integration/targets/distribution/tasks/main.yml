@@ -117,4 +117,3 @@
       microsoft.wsl.distribution:
         name: "{{ test_distribution_name }}"
         state: absent
-      ignore_errors: true

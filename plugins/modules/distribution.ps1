@@ -17,9 +17,9 @@ $moduleOptions = @{
     size = @{ type = "int"; }
     location = @{ type = "str"; }
     sparse = @{ type = "bool"; }
-    use_ms_store = @{ type = "bool"; default=$true }
-    use_fixed_vhd = @{ type = "bool"; default=$false }
-    allow_shutdown = @{ type = "bool"; default=$true }
+    use_ms_store = @{ type = "bool"; default = $true }
+    use_fixed_vhd = @{ type = "bool"; default = $false }
+    allow_shutdown = @{ type = "bool"; default = $true }
 }
 $spec = @{
     options = $commonOptions + $moduleOptions
@@ -29,7 +29,6 @@ $spec = @{
 $module = [Ansible.Basic.AnsibleModule]::Create($args, $spec)
 $name = $module.Params.name
 $distributionId = $module.Params.distribution_id
-$state = $module.Params.state
 $allowShutdown = $module.Params.allow_shutdown
 
 # updatable options
@@ -39,6 +38,9 @@ $desiredLocation = $module.params.location
 $desiredSparse = $module.params.sparse
 
 $wslExe = Test-WslInstall -module $module
+
+$module.Diff.before = @{}
+$module.Diff.after = @{}
 
 
 function Install-Distribution {
@@ -95,9 +97,13 @@ function Remove-Distribution {
 }
 
 
-
 function Invoke-RequiredUpdateCommand {
-    if ($allowShutdown) {
+    $needsShutdown = (
+        $module.diff.after.Contains("location") -or
+        $module.diff.after.Contains("sparse") -or
+        $module.diff.after.Contains("size")
+    )
+    if ($needsShutdown -and $allowShutdown) {
         Invoke-WslCommand `
             -wslExe $wslExe `
             -module $module `
@@ -137,18 +143,18 @@ function Update-Distribution {
         [object]$currentDistro
     )
     $detailedInfo = Get-DistributionInstallInfo -name $name -flat
-    $currentDistro = $currentDistro + $detailedInfo
-    $module.Diff.before = @{}
-    $module.Diff.after = @{}
+    if ($null -ne $detailedInfo) {
+        $currentDistro = $currentDistro + $detailedInfo
+    }
 
     $comparableSize = if ($desiredSize) { "$($desiredSize)GB" } else { $null }
     $updatableParams = @(
-        ,("version", $desiredVersion, $currentDistro.version)
-        ,("size", $comparableSize, $currentDistro.size)
-        ,("location", $desiredLocation, $currentDistro.location)
-        ,("sparse", $desiredSparse, $currentDistro.is_sparse)
+        , ("version", $desiredVersion, $currentDistro.version)
+        , ("size", $comparableSize, $currentDistro.size)
+        , ("location", $desiredLocation, $currentDistro.location)
+        , ("sparse", $desiredSparse, $currentDistro.is_sparse)
     )
-    foreach($updatableParam in $updatableParams) {
+    foreach ($updatableParam in $updatableParams) {
         Compare-DesiredVsActual `
             -attributeName $updatableParam[0] `
             -desired $updatableParam[1] `
@@ -167,11 +173,11 @@ function Update-Distribution {
 
 $currentDistro = Get-DistributionRuntimeInfo -wslExe $wslExe -module $module -name $name -flat
 
-if ($currentDistro -eq $null) {
+if ($null -eq $currentDistro) {
     if ($module.params.state -eq "present") {
         Install-Distribution | Out-Null
     }
-    # otherwise, the state is absent and its already absent
+    # otherwise, the state is absent and it's already absent
 }
 else {
     if ($module.params.state -eq "absent") {
