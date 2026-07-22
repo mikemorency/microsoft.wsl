@@ -125,7 +125,11 @@ function Invoke-WslCommand {
     )
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $wslExe.Source
-    $psi.Arguments = $arguments -join ' '
+    $psi.Arguments = (
+        $arguments | ForEach-Object {
+            if ($_ -match '\s') { "`"$_`"" } else { $_ }
+        }
+    ) -join ' '
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     # WSL uses utf16 by default but is "investigating" making utf8 the default in the
@@ -144,14 +148,49 @@ function Invoke-WslCommand {
     $stderr = $stderrTask.GetAwaiter().GetResult()
     $process.WaitForExit()
 
-    if (($module.Params.log_command_output -eq $True) -or ($process.ExitCode -notin $successCodes)) {
-        Write-StdText -module $module -stdout $stdout -stderr $stderr
-
-        if ($process.ExitCode -notin $successCodes) {
-            $module.Result.command_arguments = $arguments
-            $module.FailJson("WSL command returned an unexpected exit code, $($process.ExitCode): $stderr")
+    # Handle error exit codes gracefully
+    if ($process.ExitCode -notin $successCodes) {
+        $module.Result.command_arguments = $arguments
+        # wsl logs errors as regular text, so we need to reassign the stdout to stderr
+        if ($stderr -eq "") {
+            $stderr = $stdout
+            $stdout = ""
         }
+        Write-StdText -module $module -stdout $stdout -stderr $stderr
+        $message = "WSL command returned an unexpected exit code, $($process.ExitCode)"
+        if ($stderr.length -gt 0) {
+            $message += ": $stderr"
+        }
+        $module.FailJson($message)
+    }
+
+    if (($module.Params.log_command_output -eq $True)) {
+        Write-StdText -module $module -stdout $stdout -stderr $stderr
     }
 
     return $stdout, $stderr
+}
+
+
+function Compare-DesiredVsActual {
+    param (
+        [string]$attributeName,
+        $desired,
+        $actual,
+        [object]$diff = $null
+    )
+
+    if ($null -eq $desired) {
+        return $False
+    }
+
+    if ($desired -ne $actual) {
+        if ($null -ne $diff) {
+            $diff.before[$attributeName] = $actual
+            $diff.after[$attributeName] = $desired
+        }
+        return $True
+    }
+
+    return $False
 }

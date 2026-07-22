@@ -1,5 +1,6 @@
 # Optional extra args for ansible-test (leave unset for full suite)
 SANITY_TARGETS ?=
+INTEGRATION_TARGETS ?=
 
 COLLECTION_ROOT ?= $(HOME)/.ansible/collections/ansible_collections/microsoft/wsl
 
@@ -38,4 +39,4 @@ integration: tests/integration/inventory.winrm install-integration-reqs upgrade-
 	ANSIBLE_COLLECTIONS_PATH=$(COLLECTION_ROOT)/../.. ansible-galaxy collection list; \
 	ANSIBLE_ROLES_PATH=$(COLLECTION_ROOT)/tests/integration/targets \
 		ANSIBLE_COLLECTIONS_PATH=$(COLLECTION_ROOT)/../.. \
-		ansible-test windows-integration $(CLI_ARGS);
+		ansible-test windows-integration --diff $(CLI_ARGS) $(INTEGRATION_TARGETS);

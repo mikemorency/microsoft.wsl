@@ -1,0 +1,42 @@
+---
+- name: Get all distributions
+  microsoft.wsl.distribution_info:
+  register: _all
+
+- name: Get a specific distribution
+  microsoft.wsl.distribution_info:
+    name: Ubuntu
+  register: _single
+
+- name: Get a non-existent distribution
+  microsoft.wsl.distribution_info:
+    name: DoesNotExist
+  register: _missing
+
+- name: Assert all distributions
+  ansible.builtin.assert:
+    that:
+      - _all.distributions is defined
+      - _all.distributions | length >= 1
+      - _all.distributions['Ubuntu'] is defined
+      - _all.distributions['Ubuntu'].name == 'Ubuntu'
+      - _all.distributions['Ubuntu'].state in ['Running', 'Stopped']
+      - _all.distributions['Ubuntu'].version in [1, 2]
+      - _all.distributions['Ubuntu'].is_default is defined
+      - _all.distributions['Ubuntu'].location is defined
+      - _all.distributions['Ubuntu'].default_uid is defined
+      - _all.distributions['Ubuntu'].vhd_file_name is defined
+      - _all.distributions['Ubuntu'].is_sparse is defined
+      - _all.distributions['Ubuntu'].size is defined
+
+- name: Assert single distribution
+  ansible.builtin.assert:
+    that:
+      - _single.distributions | length == 1
+      - _single.distributions['Ubuntu'] is defined
+      - _single.distributions['Ubuntu'].name == 'Ubuntu'
+
+- name: Assert non-existent distribution
+  ansible.builtin.assert:
+    that:
+      - _missing.distributions | length == 0

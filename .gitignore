@@ -1,11 +1,17 @@
 /tests/output/
 /changelogs/.plugin-cache.yaml
 /tests/integration/inventory.winrm
+/.ansible/
 
 # AI
 .claude/
+.opencode/
+.cursor/
 CLAUDE.md
+GEMINI.md
 .lola/
+.github/prompts/
+skills/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

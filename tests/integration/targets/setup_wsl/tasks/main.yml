@@ -1,7 +1,12 @@
+- name: Generate unique test ID
+  ansible.builtin.set_fact:
+    unique_test_id: "test-{{ lookup('password', '/dev/null chars=ascii_letters,digit length=6') | lower }}"
+
 - name: Ensure wsl is installed
   block:
     - name: Check WSL status
       ansible.windows.win_shell: wsl --status
+      changed_when: false
   rescue:
     - name: install wsl
       ansible.windows.win_shell: wsl --install

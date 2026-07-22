@@ -24,4 +24,8 @@ build_ignore:
   # AI
   - .claude
   - .lola
+  - .opencode
+  - .cursor
+  - skills
   - CLAUDE.md
+  - GEMINI.md

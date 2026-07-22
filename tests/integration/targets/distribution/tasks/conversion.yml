@@ -1,0 +1,38 @@
+---
+- name: Test distribution conversion
+  block:
+    - name: Install a distro as wsl 1
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        distribution_id: Ubuntu
+        state: present
+        version: 1
+
+    - name: Get distro info before conversion
+      microsoft.wsl.distribution_info:
+        name: "{{ test_distribution_name }}"
+      register: _info_before_convert
+
+    - name: Update the distro to wsl 2
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        version: 2
+      register: _conversion
+
+    - name: Get distro info after conversion
+      microsoft.wsl.distribution_info:
+        name: "{{ test_distribution_name }}"
+      register: _info_after_convert
+
+    - name: Assert distro was converted
+      ansible.builtin.assert:
+        that:
+          - _info_after_convert.distributions[test_distribution_name] is defined
+          - _info_before_convert.distributions[test_distribution_name].version == 1
+          - _info_after_convert.distributions[test_distribution_name].version == 2
+
+  always:
+    - name: Cleanup - ensure test distro is removed
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent

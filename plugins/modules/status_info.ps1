@@ -6,6 +6,7 @@
 #AnsibleRequires -CSharpUtil Ansible.Basic
 #AnsibleRequires -PowerShell ..module_utils._ArgumentSpecs
 #AnsibleRequires -PowerShell ..module_utils._WslUtils
+#AnsibleRequires -PowerShell ..module_utils._Distributions
 
 $commonOptions = Get-WslCommandCommonOptionsDict
 $moduleOptions = @{
@@ -37,28 +38,6 @@ function Get-Status {
 }
 
 
-function Get-LocalDistroInfo {
-    $stdout, $stderr = Invoke-WslCommand `
-        -wslExe $wslExe `
-        -module $module `
-        -arguments @("--list", "--verbose")
-
-    $lines = Split-StdText $stdout
-    $distributions = @{}
-    foreach ($line in ($lines | Select-Object -Skip 1)) {
-        if ($line -match '^\s*(\*)?\s*(.+?)\s+(Stopped|Running|Installing|Uninstalling|Converting|Exporting)\s+(\d+)\s*$') {
-            $distributions[$Matches[2].Trim()] = @{
-                name = $Matches[2].Trim()
-                state = $Matches[3]
-                version = [int]$Matches[4]
-                is_default = ($null -ne $Matches[1])
-            }
-        }
-    }
-    $module.Result.distributions.local = $distributions
-}
-
-
 function Get-OnlineDistroInfo {
     $stdout, $stderr = Invoke-WslCommand `
         -wslExe $wslExe `
@@ -82,7 +61,7 @@ function Get-OnlineDistroInfo {
 
 
 Get-Status
-Get-LocalDistroInfo
+$module.Result.distributions.local = Get-DistributionRuntimeInfo -wslExe $wslExe -module $module
 if ($gather_online) {
     Get-OnlineDistroInfo
 }
