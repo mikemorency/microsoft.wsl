@@ -4,7 +4,7 @@
 
 - name: Test distribution install, update, and removal
   block:
-    - name: Install the distro
+    - name: Install the distro - check mode
       microsoft.wsl.distribution: &install
         name: "{{ test_distribution_name }}"
         distribution_id: Ubuntu
@@ -15,11 +15,21 @@
         sparse: true
         use_ms_store: false
         use_fixed_vhd: true
+      check_mode: true
+      register: _install_check
+    - name: Install the distro
+      microsoft.wsl.distribution: *install
       register: _install
+
+    - name: Install the distro - idempotence
+      microsoft.wsl.distribution: *install
+      register: _install_idem
 
     - name: Assert install changed
       ansible.builtin.assert:
         that:
+          - _install_idem is not changed
+          - _install_check is changed
           - _install is changed
 
     - name: Get distro info after install
@@ -37,27 +47,29 @@
           - _info_after_install.distributions[test_distribution_name].state in ['Running', 'Stopped']
           - _info_after_install.distributions[test_distribution_name].is_sparse == true
 
-    - name: Install the distro - idempotence
-      microsoft.wsl.distribution: *install
-      register: _install_idem
-
-    - name: Assert install idempotence
-      ansible.builtin.assert:
-        that:
-          - _install_idem is not changed
-
-    - name: Update the distro settings
+    - name: Update the distro settings - check mode
       microsoft.wsl.distribution: &update
         name: "{{ test_distribution_name }}"
         sparse: false
         location: c:\temp\updated
         size: 30
+      check_mode: true
+      register: _update_check
+
+    - name: Update the distro settings
+      microsoft.wsl.distribution: *update
       register: _update
+
+    - name: Update the distro settings - idempotence
+      microsoft.wsl.distribution: *update
+      register: _update_idem
 
     - name: Assert update changed
       ansible.builtin.assert:
         that:
+          - _update_check is changed
           - _update is changed
+          - _update_idem is not changed
 
     - name: Get distro info after update
       microsoft.wsl.distribution_info:
@@ -71,14 +83,12 @@
           - _info_after_update.distributions[test_distribution_name].location == 'c:\\temp\\updated'
           - _info_after_update.distributions[test_distribution_name].size == '30GB'
 
-    - name: Update the distro settings - idempotence
-      microsoft.wsl.distribution: *update
-      register: _update_idem
-
-    - name: Assert update idempotence
-      ansible.builtin.assert:
-        that:
-          - _update_idem is not changed
+    - name: Remove the distro - check
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent
+      check_mode: true
+      register: _remove_check
 
     - name: Remove the distro
       microsoft.wsl.distribution:
@@ -86,10 +96,18 @@
         state: absent
       register: _remove
 
+    - name: Remove the distro - idempotence
+      microsoft.wsl.distribution:
+        name: "{{ test_distribution_name }}"
+        state: absent
+      register: _remove_idem
+
     - name: Assert remove changed
       ansible.builtin.assert:
         that:
+          - _remove_check is changed
           - _remove is changed
+          - _remove_idem is not changed
 
     - name: Get distro info after removal
       microsoft.wsl.distribution_info:
@@ -101,19 +119,11 @@
         that:
           - _info_after_remove.distributions | length == 0
 
-    - name: Remove the distro - idempotence
-      microsoft.wsl.distribution:
-        name: "{{ test_distribution_name }}"
-        state: absent
-      register: _remove_idem
-
-    - name: Assert remove idempotence
-      ansible.builtin.assert:
-        that:
-          - _remove_idem is not changed
-
   always:
     - name: Cleanup - ensure test distro is removed
       microsoft.wsl.distribution:
         name: "{{ test_distribution_name }}"
         state: absent
+
+- name: Test conversion
+  ansible.builtin.include_tasks: conversion.yml

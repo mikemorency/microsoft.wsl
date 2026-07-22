@@ -125,7 +125,9 @@ function Invoke-WslCommand {
     )
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $wslExe.Source
-    $psi.Arguments = $arguments -join ' '
+    $psi.Arguments = ($arguments | ForEach-Object {
+        if ($_ -match '\s') { "`"$_`"" } else { $_ }
+    }) -join ' '
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     # WSL uses utf16 by default but is "investigating" making utf8 the default in the

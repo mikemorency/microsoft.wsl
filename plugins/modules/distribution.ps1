@@ -33,9 +33,9 @@ $allowShutdown = $module.Params.allow_shutdown
 
 # updatable options
 $desiredVersion = $module.Params.version
-$desiredSize = $module.params.size
-$desiredLocation = $module.params.location
-$desiredSparse = $module.params.sparse
+$desiredSize = $module.Params.size
+$desiredLocation = $module.Params.location
+$desiredSparse = $module.Params.sparse
 
 $wslExe = Test-WslInstall -module $module
 
@@ -51,8 +51,8 @@ function Install-Distribution {
     $installParams.AddRange(
         [string[]]@("--install", "--no-launch", "-d", "$distroId", "--name", "$name")
     )
-    if ($module.params.use_fixed_vhd) { $installParams.Add("--fixed-vhd") }
-    if (-not $module.params.use_ms_store) { $installParams.Add("--web-download") }
+    if ($module.Params.use_fixed_vhd) { $installParams.Add("--fixed-vhd") }
+    if (-not $module.Params.use_ms_store) { $installParams.Add("--web-download") }
     if ($desiredVersion) { $installParams.AddRange([string[]]@("--version", "$desiredVersion")) }
     if ($desiredLocation) { $installParams.AddRange([string[]]@("--location", $desiredLocation)) }
     if ($desiredSize) { $installParams.AddRange([string[]]@("--vhd-size", "$($desiredSize)GB")) }
@@ -94,7 +94,6 @@ function Remove-Distribution {
             -module $module `
             -arguments @("--unregister", $name)
     }
-    return
 }
 
 
@@ -133,7 +132,7 @@ function Invoke-RequiredUpdateCommand {
         Invoke-WslCommand `
             -wslExe $wslExe `
             -module $module `
-            -arguments @("--manage", $name, "--set-version", "$desiredVersion")
+            -arguments @("--set-version", "$name", "$desiredVersion")
     }
 
 }
@@ -175,13 +174,13 @@ function Update-Distribution {
 $currentDistro = Get-DistributionRuntimeInfo -wslExe $wslExe -module $module -name $name -flat
 
 if ($null -eq $currentDistro) {
-    if ($module.params.state -eq "present") {
+    if ($module.Params.state -eq "present") {
         Install-Distribution | Out-Null
     }
     # otherwise, the state is absent and it's already absent
 }
 else {
-    if ($module.params.state -eq "absent") {
+    if ($module.Params.state -eq "absent") {
         Remove-Distribution -currentDistro $currentDistro | Out-Null
     }
     else {
