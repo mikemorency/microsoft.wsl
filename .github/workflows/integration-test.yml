@@ -1,0 +1,62 @@
+---
+name: Ansible Test
+on: # yamllint disable-line rule:truthy
+  pull_request:
+  merge_group:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        versions:
+          - { windows: "2022" }
+          # I cannot get WSL to install on the 2025 test host. Its almost like WSL
+          # is corrupt or something
+          # - { windows: "2025" }
+
+    name: "WIN ${{ matrix.versions.windows }} "
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Create Azure session credentials
+        uses: ansible/ansible-test-auth@v1
+
+      - name: Install ansible-core
+        run: >-
+          python3 -m pip install ansible-core --disable-pip-version-check
+
+      - name: Run integration tests
+        run: >-
+          make integration CLI_ARGS="
+          --color -v --controller 'docker:default'
+          --target 'remote:windows/${{ matrix.versions.windows }},connection=ssh+key,provider=azure'
+          --remote-terminate always
+          "
+
+  # This job does nothing and is only used for the branch protection
+  # or multi-stage CI jobs, like making sure that all tests pass before
+  # a publishing job is started.
+  integration_all_green:
+    if: always()
+
+    needs:
+      - integration
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
